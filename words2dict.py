@@ -1,52 +1,82 @@
-# ToDo: CLI
-# Options:
-#   path
-#   erase, append, new file
-
 from PyDictionary import PyDictionary
 from nltk.stem import WordNetLemmatizer
+import argparse
 import nltk
 nltk.download('wordnet')
 
-d = PyDictionary()
-lemmatizer = WordNetLemmatizer() 
+def build_dict(args):
+    dictionary = PyDictionary()
+    lemmatizer = WordNetLemmatizer() 
 
-file_name = 'C:\\Users\\ender\\OneDrive\\Desktop\\gre_vocab.txt'
+    src_path = args.src
+    dest_path = args.dest if args.dest else src_path
 
-with open(file_name, 'r+') as file:
-    words = [{'word': word.replace('\n', '').lower()} for word in file.readlines()]
+    words = []
+    entries = []
+    with open(src_path, 'r') as src_file:
+        words = [word.replace('\n', '').lower() for word in src_file.readlines()]
+        entries = [build_entry(word, lemmatizer, dictionary) for word in words]
+    
+    with open(dest_path, 'w') as dest_file:
+        dest_file.seek(0)
+        dest_file.truncate()
 
-    file.seek(0)
-    file.truncate()
-    for word in words:
-        lemma = lemmatizer.lemmatize(word['word'])
-        word['lemma'] = lemma
-        print(lemma)
-        definitions = d.meaning(lemma)
+        for entry in entries:
+            write_entry(entry,  dest_file)
 
-        word['definition'] = []
-        try:
-            definition = d.meaning(lemma)
-            for pos, pos_ds in definition.items():
-                for pos_d in pos_ds:
-                    word['definition'].append(f'{pos} - {pos_d}')
+def build_entry(word, lemmatizer, dictionary):
+    entry = {'word': word}
 
-        except AttributeError:
-            word['definition'] = None
+    lemma = lemmatizer.lemmatize(entry['word'])
+    entry['lemma'] = lemma
 
-        word['synonym'] = d.synonym(lemma)
-        word['antonym'] = d.antonym(lemma)
-        
-        for key, value in word.items():
-            file.write(f'{key.capitalize()}:\n')
+    entry['definition'] = []
+    try:
+        definition = dictionary.meaning(lemma)
+        for pos, pos_ds in definition.items():
+            for pos_d in pos_ds:
+                entry['definition'].append(f'{pos} - {pos_d}')
 
-            if isinstance(value, list):
-                for v in value:
-                    file.write(f'\t{v}\n')
-            elif value is None:
-                file.write(f'\tMissing {key}\n')
-            else:
-                file.write(f'\t{value}\n')
+    except AttributeError:
+        entry['definition'] = None
 
-        file.write('------------------\n')
-        
+    entry['synonym'] = dictionary.synonym(lemma)
+    entry['antonym'] = dictionary.antonym(lemma)
+
+    return entry
+
+def write_entry(entry, file):
+    for key, value in entry.items():
+        file.write(f'{key.capitalize()}:\n')
+
+        if isinstance(value, list):
+            for v in value:
+                file.write(f'\t{v}\n')
+        elif value is None:
+            file.write(f'\tMissing {key}\n')
+        else:
+            file.write(f'\t{value}\n')
+
+    file.write('------------------\n')
+
+def get_args():
+    parser = argparse.ArgumentParser(prog='words2dict',
+                                     description='Convert a \\n separated list of words to their respective dictionary entries')
+         
+    parser.add_argument('-src',
+                        metavar='SRC_PATH',
+                        type=str,
+                        help='Path to the file containing the list of words',
+                        required=True)
+
+    parser.add_argument('-dest',
+                        metavar='DEST_PATH',
+                        type=str,
+                        help='Path to the file to write dictionary entries. If omitted, SRC_PATH will be used as the default value',
+                        required=False)
+
+    return parser.parse_args()
+
+if __name__ == '__main__':
+    args = get_args()
+    build_dict(args)
