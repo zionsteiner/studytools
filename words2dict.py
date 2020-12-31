@@ -17,10 +17,8 @@ def build_dict(args):
         words = [word.replace('\n', '').lower() for word in src_file.readlines()]
         entries = [build_entry(word, lemmatizer, dictionary) for word in words]
     
-    with open(dest_path, 'w') as dest_file:
-        dest_file.seek(0)
-        dest_file.truncate()
-
+    mode = 'a' if args.append else 'w'
+    with open(dest_path, mode) as dest_file:
         for entry in entries:
             write_entry(entry,  dest_file)
 
@@ -74,6 +72,12 @@ def get_args():
                         type=str,
                         help='Path to the file to write dictionary entries. If omitted, SRC_PATH will be used as the default value',
                         required=False)
+
+    parser.add_argument('--append',
+                        dest='append',
+                        action='store_true',
+                        required=False,
+                        help='Whether to append to file at DEST_PATH or overwrite')
 
     return parser.parse_args()
 
