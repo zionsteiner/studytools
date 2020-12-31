@@ -31,9 +31,9 @@ def build_entry(word, lemmatizer, dictionary):
     entry['definition'] = []
     try:
         definition = dictionary.meaning(lemma)
-        for pos, pos_ds in definition.items():
-            for pos_d in pos_ds:
-                entry['definition'].append(f'{pos} - {pos_d}')
+        for pos, pos_defs in definition.items():
+            for pos_def in pos_defs:
+                entry['definition'].append(f'{pos} - {pos_def}')
 
     except AttributeError:
         entry['definition'] = None
@@ -64,21 +64,21 @@ def get_args():
     parser.add_argument('-src',
                         metavar='SRC_PATH',
                         type=str,
-                        help='Path to the file containing the list of words',
-                        required=True)
+                        required=True,
+                        help='Path to the file containing the list of words')
 
     parser.add_argument('-dest',
                         metavar='DEST_PATH',
                         type=str,
-                        help='Path to the file to write dictionary entries. If omitted, SRC_PATH will be used as the default value',
-                        required=False)
+                        required=False,
+                        help='Path to the file to write dictionary entries. If omitted, SRC_PATH will be used as the default value')
 
     parser.add_argument('--append',
                         dest='append',
                         action='store_true',
                         required=False,
                         help='Whether to append to file at DEST_PATH or overwrite')
-
+    
     return parser.parse_args()
 
 if __name__ == '__main__':
