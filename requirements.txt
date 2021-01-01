@@ -1,2 +1,4 @@
 PyDictionary
 nltk
+numpy
+tqdm

@@ -1,27 +1,36 @@
 from PyDictionary import PyDictionary
-from nltk.stem import WordNetLemmatizer
 import argparse
+import numpy as np
 import nltk
 from tqdm import tqdm
-nltk.download('wordnet')
+from nltk.stem import WordNetLemmatizer
 
-def build_dict(path, progress_bar=False):
+nltk.download('wordnet', quiet=True)
+
+
+def build_dict(path, n_words=None, progress_bar=False):
     dictionary = PyDictionary()
-    lemmatizer = WordNetLemmatizer() 
+    lemmatizer = WordNetLemmatizer()
 
     words = []
     entries = []
     with open(path, 'r') as file:
         words = [word.strip().replace('\n', '').lower() for word in file.readlines()]
-        
+
+        if n_words:
+            try:
+                words = np.random.choice(words, size=n_words, replace=False)
+            except ValueError:
+                raise ValueError(f'File must contain at least {n_words} words')
+
         if progress_bar:
             for word in tqdm(words):
                 entries.append(build_entry(word, lemmatizer, dictionary))
         else:
             entries = [build_entry(word, lemmatizer, dictionary) for word in words]
-        
-    
+
     return entries
+
 
 def build_entry(word, lemmatizer, dictionary):
     entry = {'word': word}
@@ -44,6 +53,7 @@ def build_entry(word, lemmatizer, dictionary):
 
     return entry
 
+
 def write_entry(entry, file):
     for key, value in entry.items():
         file.write(f'{key.capitalize()}:\n')
@@ -58,28 +68,31 @@ def write_entry(entry, file):
 
     file.write('------------------\n')
 
+
 def write_dict(entries, path, append=False):
     mode = 'a' if append else 'w'
     with open(path, mode) as file:
         if mode == 'a':
             file.write('\n')
         for entry in entries:
-            write_entry(entry,  file)
-            
+            write_entry(entry, file)
+
+
 def build_and_write_dict(args):
     src_path = args.src
     dest_path = args.dest if args.dest else src_path
-    
+
     print('Building dict...')
     entries = build_dict(src_path, progress_bar=True)
     print('Writing dict...')
     write_dict(entries, dest_path, args.append)
     print('Done.')
 
+
 def get_args():
     parser = argparse.ArgumentParser(prog='words2dict',
                                      description='Convert a \\n separated list of words to their respective dictionary entries')
-         
+
     parser.add_argument('-src',
                         metavar='SRC_PATH',
                         type=str,
@@ -97,8 +110,9 @@ def get_args():
                         action='store_true',
                         required=False,
                         help='Whether to append to file at DEST_PATH or overwrite')
-    
+
     return parser.parse_args()
+
 
 if __name__ == '__main__':
     args = get_args()
