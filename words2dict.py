@@ -2,25 +2,26 @@ from PyDictionary import PyDictionary
 from nltk.stem import WordNetLemmatizer
 import argparse
 import nltk
+from tqdm import tqdm
 nltk.download('wordnet')
 
-def build_dict(args):
+def build_dict(path, progress_bar=False):
     dictionary = PyDictionary()
     lemmatizer = WordNetLemmatizer() 
 
-    src_path = args.src
-    dest_path = args.dest if args.dest else src_path
-
     words = []
     entries = []
-    with open(src_path, 'r') as src_file:
-        words = [word.replace('\n', '').lower() for word in src_file.readlines()]
-        entries = [build_entry(word, lemmatizer, dictionary) for word in words]
+    with open(path, 'r') as file:
+        words = [word.strip().replace('\n', '').lower() for word in file.readlines()]
+        
+        if progress_bar:
+            for word in tqdm(words):
+                entries.append(build_entry(word, lemmatizer, dictionary))
+        else:
+            entries = [build_entry(word, lemmatizer, dictionary) for word in words]
+        
     
-    mode = 'a' if args.append else 'w'
-    with open(dest_path, mode) as dest_file:
-        for entry in entries:
-            write_entry(entry,  dest_file)
+    return entries
 
 def build_entry(word, lemmatizer, dictionary):
     entry = {'word': word}
@@ -57,6 +58,24 @@ def write_entry(entry, file):
 
     file.write('------------------\n')
 
+def write_dict(entries, path, append=False):
+    mode = 'a' if append else 'w'
+    with open(path, mode) as file:
+        if mode == 'a':
+            file.write('\n')
+        for entry in entries:
+            write_entry(entry,  file)
+            
+def build_and_write_dict(args):
+    src_path = args.src
+    dest_path = args.dest if args.dest else src_path
+    
+    print('Building dict...')
+    entries = build_dict(src_path, progress_bar=True)
+    print('Writing dict...')
+    write_dict(entries, dest_path, args.append)
+    print('Done.')
+
 def get_args():
     parser = argparse.ArgumentParser(prog='words2dict',
                                      description='Convert a \\n separated list of words to their respective dictionary entries')
@@ -83,4 +102,4 @@ def get_args():
 
 if __name__ == '__main__':
     args = get_args()
-    build_dict(args)
+    build_and_write_dict(args)
