@@ -1,4 +1,3 @@
 PyDictionary
-nltk
 numpy
 tqdm

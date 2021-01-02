@@ -1,0 +1,9 @@
+build/
+dist/
+gre_dict.txt
+vocab.txt
+.idea/
+.vscode/
+__pycache__/
+venv*/
+*.spec

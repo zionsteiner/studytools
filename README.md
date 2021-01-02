@@ -11,6 +11,15 @@ This is a collection of tools to help me study for the GRE.
 ```
 python studytools.py
 ```
+Alternatively, download and run a release
+#### Windows
+```
+studytools.exe
+```
+#### Linux
+```
+./studytools
+```
 
 ### Requirements
 Run the following terminal command to install dependencies:
