@@ -46,9 +46,7 @@ python words2dict.py -src words.txt -dest dictionary.txt
 dictionary.txt
 ```
 Word:
-	dinosaur
-Lemma:
-	dinosaur
+    dinosaur
 Definition:
 	Noun - any of numerous extinct terrestrial reptiles of the Mesozoic era
 Synonym:
@@ -57,8 +55,6 @@ Antonym:
 	anapsid
 ------------------
 Word:
-	rampant
-Lemma:
 	rampant
 Definition:
 	Adjective - unrestrained and violent

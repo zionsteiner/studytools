@@ -4,7 +4,7 @@ from typing import Callable, Any
 import numpy as np
 from PyDictionary import PyDictionary
 
-from words2dict import build_dict, parse_dict
+from words2dict import build_dict, write_dict, parse_dict
 
 
 class MultipleChoice:
@@ -35,19 +35,19 @@ class MultipleChoice:
         prompt_str = 'Select an answer:\n' + '\n'.join([f'{next(curr_index)}:\t{option}' for option in self.options])
 
         print(self.question)
-        user_answer = int(input(prompt_str+'\n'))
+        user_answer = int(input(prompt_str + '\n'))
         print()
-        
+
         valid_input = 1 <= user_answer <= len(self.options)
         while not valid_input:
             print('Invalid input, try again')
             print(self.question)
-            user_answer = int(input(prompt_str+'\n'))
+            user_answer = int(input(prompt_str + '\n'))
             print()
-            
+
             valid_input = 1 <= user_answer <= len(self.options)
 
-        if user_answer == (self.answer_index+1):
+        if user_answer == (self.answer_index + 1):
             print('Correct!\n')
             return True
         else:
@@ -72,9 +72,10 @@ class VocabTool(Tool):
         while play_again:
             flashcards = self.show_flashcards(flashcards)
             if len(flashcards):
-                play_again_input = int(input('Would you like to play again with the words you missed?\n1.\tYes\n2.\tNo\n'))
+                play_again_input = int(
+                    input('Would you like to play again with the words you missed?\n1.\tYes\n2.\tNo\n'))
                 print()
-                
+
                 play_again = True if play_again_input == 1 else False
             else:
                 play_again = False
@@ -94,18 +95,18 @@ class VocabTool(Tool):
 
         accuracy = (len(flashcards) - len(mistakes)) / len(flashcards)
         addendum = 'Good job!' if accuracy > 0.5 else 'You have some work to do!'
-        print(f'You got {accuracy*100:.2f}% right. {addendum}\n')
+        print(f'You got {accuracy * 100:.2f}% right. {addendum}\n')
 
         return mistakes
 
     def load_flashcards(self, path: str, is_dict: bool, n_words: int):
         entries = []
         words = []
-        
+
         if is_dict:
             entries = [entry for entry in parse_dict(path) if 'Missing definition' not in entry['definition']]
             words = [entry['word'] for entry in entries]
-            
+
             try:
                 entries = list(np.random.choice(entries, size=n_words, replace=False))
             except ValueError:
@@ -114,7 +115,20 @@ class VocabTool(Tool):
             entries = build_dict(path, n_words, progress_bar=True)
             with open(path, 'r') as file:
                 words = sorted(set([word.strip().replace('\n', '').lower() for word in file.readlines()]))
-            
+
+            save_dict_option = Option(name='save_dict',
+                                      prompt='Save generated dictionary? You can load vocab from this quicker next time\n1.\tYes\n2.\tNo',
+                                      validator=lambda x: 1 <= int(x) <= 2,
+                                      processor=lambda x: True if int(x) == 1 else False)
+            save_dict_option.prompt_user()
+
+            if save_dict_option.selection:
+                save_path_option = Option(name='save_path',
+                                          prompt='Enter a path to save the dictionary to')
+                save_path_option.prompt_user()
+                path = save_path_option.selection
+                write_dict(entries, path)
+
         entries = [entry for entry in entries if entry['definition']]
 
         flashcards = []
@@ -130,7 +144,7 @@ class VocabTool(Tool):
                 raise ValueError(f'File must contain at least {N_OPTIONS} words')
 
             flashcard = MultipleChoice(question=definition,
-                                    options=options)
+                                       options=options)
             flashcards.append(flashcard)
 
         return flashcards
@@ -141,7 +155,8 @@ class ToolID(Enum):
 
 
 class Option:
-    def __init__(self, name: str, prompt: str, selection=None, validator: Callable[[Any], bool] = None, processor: Callable = str):
+    def __init__(self, name: str, prompt: str, selection=None, validator: Callable[[Any], bool] = None,
+                 processor: Callable = str):
         self.name = name
         self.prompt = prompt
         self.processor = processor
@@ -170,7 +185,7 @@ class Option:
         validated = False
         while not validated:
             try:
-                self.selection = input(self.prompt+'\n')
+                self.selection = input(self.prompt + '\n')
                 print()
                 validated = True
             except ValueError:
@@ -182,18 +197,18 @@ def options_prompt():
 
     tool_names = {ToolID.VOCAB: 'Vocab Flashcards'}
     tool_options = {ToolID.VOCAB: [
-                        Option(name='words_path', 
-                               prompt='What word file would you like to use?\nEx. words.txt'),
-                        Option(name='is_dict', 
-                               prompt='Is this a list of words, or a pregenerated dictionary file?\n1.\tWords\n2.\tDictionary', 
-                               validator=lambda x: 1 <= int(x) <= 2,
-                               processor=lambda x: bool(int(x)-1)),
-                        Option(name='n_cards', 
-                               prompt='How many flashcards to go through?',
-                               validator=lambda x: int(x) > 0,
-                               processor=int),
-                        ],
-                    }
+        Option(name='words_path',
+               prompt='What word file would you like to use?\nEx. words.txt'),
+        Option(name='is_dict',
+               prompt='Is this a list of words, or a pregenerated dictionary file?\n1.\tWords\n2.\tDictionary',
+               validator=lambda x: 1 <= int(x) <= 2,
+               processor=lambda x: bool(int(x) - 1)),
+        Option(name='n_cards',
+               prompt='How many flashcards to go through?',
+               validator=lambda x: int(x) > 0,
+               processor=int),
+    ],
+    }
 
     tool_id_prompt = 'Select an option:\n' + '\n'.join(
         [f'{tool_id.value}:\t{tool_name}' for tool_id, tool_name in tool_names.items()])
