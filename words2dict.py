@@ -1,13 +1,13 @@
-from PyDictionary import PyDictionary
 import argparse
-from typing import List, Dict
-import numpy as np
 import os
+from typing import List, Dict
+
+import numpy as np
+from PyDictionary import PyDictionary
 from tqdm import tqdm
 
-# ToDo: fail and recover corrected path immediately
-
 ENTRY_DELIM = '------------------\n'
+
 
 def build_dict(path, n_words=None, progress_bar=False):
     dictionary = PyDictionary()
@@ -68,7 +68,7 @@ def write_entry(entry, file):
 
 def write_dict(entries, path, append=False):
     mode = 'a' if append else 'w'
-    
+
     with open(path, mode) as file:
         if mode == 'a':
             file.write('\n')
@@ -85,26 +85,34 @@ def build_and_write_dict(args):
     print('Writing dict...')
     write_dict(entries, dest_path, args.append)
     print('Done.')
-    
+
+
 def parse_dict(path: str) -> List[Dict]:
     dict_text = ''
     with open(path, 'r') as file:
         dict_text = file.read()
 
+    # ToDo:  finicky behavior is file does not end with a newline
     text_entries = dict_text.split(ENTRY_DELIM)[:-1]
     entries = [parse_entry(entry) for entry in text_entries]
-    
+
     return entries
-    
+
+
 def parse_entry(text_entry: str) -> Dict:
     lines = text_entry.replace('\t', '').split('\n')[:-1]
-    
+
     entry = {'word': lines[1],
-             'definition': lines[lines.index('Definition:')+1:lines.index('Synonym:')],
-             'synonym': lines[lines.index('Synonym:')+1:lines.index('Antonym:')],
-             'antonym': lines[lines.index('Antonym:')+1:]}
-    
+             'definition': lines[lines.index('Definition:') + 1:lines.index('Synonym:')],
+             'synonym': lines[lines.index('Synonym:') + 1:lines.index('Antonym:')],
+             'antonym': lines[lines.index('Antonym:') + 1:]}
+
     return entry
+
+
+def validate_args(args):
+    if not os.path.isfile(args.src):
+        raise ValueError(f'File {args.src} does not exist')
 
 
 def get_args():
@@ -129,7 +137,10 @@ def get_args():
                         required=False,
                         help='Whether to append to file at DEST_PATH or overwrite')
 
-    return parser.parse_args()
+    args = parser.parse_args()
+    validate_args(args)
+
+    return args
 
 
 if __name__ == '__main__':

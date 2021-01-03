@@ -22,7 +22,8 @@ studytools.exe
 ```
 
 ### Requirements
-Run the following terminal command to install dependencies:
+If you run this as a Python script and not a release, you'll need to download the dependencies.
+Run the following terminal command to install the modules you need:
 ```
 pip install -r requirements.txt
 ```
