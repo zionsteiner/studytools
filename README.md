@@ -2,15 +2,29 @@
 This is a collection of tools to help me study for the GRE.
 
 ### Tools:
-* Vocab Flashcards
-* Comprehension (ToDo)
-* Fill in the blank (ToDo)
-* Quantitative (ToDo)
+#### Vocab Flashcards
+Requires a list of vocab words saved to a file, like the **words.txt** example below. Each word must be on its own line.
+It also accepts a pregenerated dictionary file like **dictionary.txt**.
+
+The tools loads the word definitions and displays multiple choice prompts:
+```
+Definition: the deliberate act of deviating from the truth
+Select an answer:
+1:	bucolic
+2:	discomfiting
+3:	prevarication
+4:	recrudescent
+```
+
+#### Comprehension (ToDo)
+#### Fill in the blank (ToDo)
+#### Quantitative (ToDo)
 
 ### Usage
 ```
 python studytools.py
 ```
+
 Alternatively, download and run a release
 #### Windows
 ```
@@ -49,21 +63,21 @@ dictionary.txt
 Word:
     dinosaur
 Definition:
-	Noun - any of numerous extinct terrestrial reptiles of the Mesozoic era
+    Noun - any of numerous extinct terrestrial reptiles of the Mesozoic era
 Synonym:
-	argentinosaur
+    argentinosaur
 Antonym:
-	anapsid
+    anapsid
 ------------------
 Word:
-	rampant
+    rampant
 Definition:
-	Adjective - unrestrained and violent
-	Adjective - rearing on left hind leg with forelegs elevated and head usually in profile
+    Adjective - unrestrained and violent
+    Adjective - rearing on left hind leg with forelegs elevated and head usually in profile
 Synonym:
-	uncontrolled
+    uncontrolled
 Antonym:
-	controlled
-	level
+    controlled
+    level
 ------------------
 ```

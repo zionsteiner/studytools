@@ -6,7 +6,7 @@ import numpy as np
 from PyDictionary import PyDictionary
 from tqdm import tqdm
 
-ENTRY_DELIM = '------------------\n'
+ENTRY_DELIM = '------------------'
 
 
 def build_dict(path, n_words=None, progress_bar=False):
@@ -15,7 +15,7 @@ def build_dict(path, n_words=None, progress_bar=False):
     words = []
     entries = []
     with open(path, 'r') as file:
-        words = sorted(set([word.strip().replace('\n', '').lower() for word in file.readlines()]))
+        words = sorted(set([word.strip().lower() for word in file.readlines()]))
 
         if n_words:
             try:
@@ -33,9 +33,8 @@ def build_dict(path, n_words=None, progress_bar=False):
 
 
 def build_entry(word, dictionary):
-    entry = {'word': word}
+    entry = {'word': word, 'definition': []}
 
-    entry['definition'] = []
     try:
         definition = dictionary.meaning(word)
         for pos, pos_defs in definition.items():
@@ -63,15 +62,17 @@ def write_entry(entry, file):
         else:
             file.write(f'\t{value}\n')
 
-    file.write(ENTRY_DELIM)
+    file.write(ENTRY_DELIM+'\n')
 
 
 def write_dict(entries, path, append=False):
-    mode = 'a' if append else 'w'
+    if append:
+        existing_entries = parse_dict(path) if os.path.isfile(path) else []
+        new_words = [entry['word'] for entry in entries]
+        entries.extend([entry for entry in existing_entries if entry['word'] not in new_words])
+        entries.sort(key=lambda entry: entry['word'])
 
-    with open(path, mode) as file:
-        if mode == 'a':
-            file.write('\n')
+    with open(path, 'w') as file:
         for entry in entries:
             write_entry(entry, file)
 
@@ -92,17 +93,16 @@ def parse_dict(path: str) -> List[Dict]:
     with open(path, 'r') as file:
         dict_text = file.read()
 
-    # ToDo:  finicky behavior is file does not end with a newline
-    text_entries = dict_text.split(ENTRY_DELIM)[:-1]
+    text_entries = dict_text.strip().split(ENTRY_DELIM)[:-1]
     entries = [parse_entry(entry) for entry in text_entries]
 
     return entries
 
 
 def parse_entry(text_entry: str) -> Dict:
-    lines = text_entry.replace('\t', '').split('\n')[:-1]
+    lines = text_entry.strip().replace('\t', '').split('\n')
 
-    entry = {'word': lines[1],
+    entry = {'word': lines[lines.index('Word:') + 1],
              'definition': lines[lines.index('Definition:') + 1:lines.index('Synonym:')],
              'synonym': lines[lines.index('Synonym:') + 1:lines.index('Antonym:')],
              'antonym': lines[lines.index('Antonym:') + 1:]}
