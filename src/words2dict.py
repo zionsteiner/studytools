@@ -4,30 +4,29 @@ from typing import List, Dict
 
 import numpy as np
 from PyDictionary import PyDictionary
-from tqdm import tqdm
+from rich.progress import track
 
 ENTRY_DELIM = '------------------'
 
 
-def build_dict(path, n_words=None, progress_bar=False):
+def read_words(path: str):
+    with open(path, 'r') as file:
+        words = [word.strip().lower() for word in file.readlines() if not word.isspace()]
+
+    return words
+
+
+def build_dict(words: List[str], progress_bar=False):
     dictionary = PyDictionary()
 
-    words = []
+    words = sorted(set(words))
     entries = []
-    with open(path, 'r') as file:
-        words = sorted(set([word.strip().lower() for word in file.readlines()]))
 
-        if n_words:
-            try:
-                words = np.random.choice(words, size=n_words, replace=False)
-            except ValueError:
-                raise ValueError(f'File must contain at least {n_words} words')
-
-        if progress_bar:
-            for word in tqdm(words):
-                entries.append(build_entry(word, dictionary))
-        else:
-            entries = [build_entry(word, dictionary) for word in words]
+    if progress_bar:
+        for word in track(words, 'Loading vocab...'):
+            entries.append(build_entry(word, dictionary))
+    else:
+        entries = [build_entry(word, dictionary) for word in words]
 
     return entries
 
@@ -62,29 +61,32 @@ def write_entry(entry, file):
         else:
             file.write(f'\t{value}\n')
 
-    file.write(ENTRY_DELIM+'\n')
+    file.write(ENTRY_DELIM + '\n')
 
 
-def write_dict(entries, path, append=False):
-    if append:
-        existing_entries = parse_dict(path) if os.path.isfile(path) else []
-        new_words = [entry['word'] for entry in entries]
-        entries.extend([entry for entry in existing_entries if entry['word'] not in new_words])
-        entries.sort(key=lambda entry: entry['word'])
-
+def write_dict(entries, path):
     with open(path, 'w') as file:
         for entry in entries:
             write_entry(entry, file)
 
 
 def build_and_write_dict(args):
-    src_path = args.src
-    dest_path = args.dest if args.dest else src_path
+    src_path = args['src']
+    dest_path = args['dest'] if args['dest'] else src_path
 
-    print('Building dict...')
-    entries = build_dict(src_path, progress_bar=True)
+    words = read_words(src_path)
+    entries = []
+    if args['append']:
+        existing_entries = parse_dict(dest_path)
+        existing_words = [entry['word'] for entry in existing_entries]
+
+        new_words = list(set(words) - set(existing_words))
+        entries = build_dict(new_words, progress_bar=True) + existing_entries
+        entries.sort(key=lambda entry: entry['word'])
+    else:
+        entries = build_dict(words, progress_bar=True)
     print('Writing dict...')
-    write_dict(entries, dest_path, args.append)
+    write_dict(entries, dest_path)
     print('Done.')
 
 
@@ -110,9 +112,13 @@ def parse_entry(text_entry: str) -> Dict:
     return entry
 
 
-def validate_args(args):
-    if not os.path.isfile(args.src):
-        raise ValueError(f'File {args.src} does not exist')
+def validate_args(args: Dict):
+    if not os.path.isfile(args['src']):
+        raise ValueError(f'File {args["src"]} does not exist')
+    if args['append'] and not args['dest']:
+        raise ValueError('Cannot append to non-dict file')
+    if args['append'] and args['dest'] and not os.path.isfile(args['dest']):
+        raise ValueError(f'Cannot append to non-existing file {args["dest"]}')
 
 
 def get_args():
@@ -135,9 +141,9 @@ def get_args():
                         dest='append',
                         action='store_true',
                         required=False,
-                        help='Whether to append to file at DEST_PATH or overwrite')
+                        help='Append to existing dictionary file at DEST_PATH or overwrite')
 
-    args = parser.parse_args()
+    args = vars(parser.parse_args())
     validate_args(args)
 
     return args

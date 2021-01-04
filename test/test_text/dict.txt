@@ -1,0 +1,47 @@
+Word:
+	affable
+Definition:
+	Adjective - diffusing warmth and friendliness
+Synonym:
+	cordial
+	genial
+	amiable
+	friendly
+Antonym:
+	unfriendly
+	insincere
+	cool
+	inhospitable
+	ill-natured
+------------------
+Word:
+	ensconced
+Definition:
+	Verb - fix firmly
+Synonym:
+	put
+	pose
+	place
+	lay
+	set
+	position
+	settle
+Antonym:
+	deglycerolize
+	disarrange
+	divest
+	disorganize
+	disorganise
+------------------
+Word:
+	pilloried
+Definition:
+	Verb - expose to ridicule or public scorn
+	Verb - punish by putting in a pillory
+Synonym:
+	exhibit
+	display
+Antonym:
+	keep quiet
+	underexpose
+------------------

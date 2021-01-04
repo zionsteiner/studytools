@@ -1,3 +1,3 @@
 PyDictionary
-numpy
-tqdm
+numpy==1.19.3
+rich

@@ -1,0 +1,18 @@
+Word:
+	pilloried
+Definition:
+	Verb - expose to ridicule or public scorn
+	Verb - punish by putting in a pillory
+	Verb - criticize harshly or violently
+Synonym:
+	exhibit
+	display
+	expose
+	gibbet
+Antonym:
+	keep quiet
+	underexpose
+	overexpose
+	veil
+	wrap
+

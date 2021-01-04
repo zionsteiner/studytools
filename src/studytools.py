@@ -9,6 +9,7 @@ def options_prompt():
     args = {}
     options = []
 
+    # Add new tools here
     tool_names = {ToolID.VOCAB: 'Vocab Flashcards'}
     tool_id_prompt = 'Select an option:\n' + '\n'.join(
         [f'{tool_id.value}:\t{tool_name}' for tool_id, tool_name in tool_names.items()])
@@ -25,6 +26,7 @@ def options_prompt():
 
 
 def get_tool(tool_id: ToolID):
+    # Add new tools here
     tools = {ToolID.VOCAB: VocabTool}
 
     tool = tools[tool_id]()
