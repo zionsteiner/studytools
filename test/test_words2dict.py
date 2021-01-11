@@ -5,7 +5,8 @@ from PyDictionary import PyDictionary
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../src/'))
 
-from words2dict import parse_dict, parse_entry, read_words, build_dict, build_entry, write_dict, build_and_write_dict
+from words2dict import parse_dict, parse_entry, read_words, build_dict, build_entry, write_dict, build_and_write_dict, \
+    entry_to_str
 
 TEXT_DIR = os.path.join(os.path.dirname(__file__), 'test_text')
 
@@ -78,7 +79,7 @@ class Test_build:
         assert entry == exp_entry
 
 
-def test_write():
+def test_write_dict():
     exp_entries = [{'word': 'affable',
                     'definition': ['Adjective - diffusing warmth and friendliness'],
                     'synonym': ['cordial', 'genial', 'amiable', 'friendly'],
@@ -100,7 +101,34 @@ def test_write():
     assert entries == exp_entries
 
 
-class Test_build_and_write_dict():
+def test_entry_to_str():
+    entry = {'word': 'affable',
+             'definition': ['Adjective - diffusing warmth and friendliness'],
+             'synonym': ['cordial', 'genial', 'amiable', 'friendly'],
+             'antonym': ['unfriendly', 'insincere', 'cool', 'inhospitable', 'ill-natured']}
+
+    exp_entry_str = """Word:
+	affable
+Definition:
+	Adjective - diffusing warmth and friendliness
+Synonym:
+	cordial
+	genial
+	amiable
+	friendly
+Antonym:
+	unfriendly
+	insincere
+	cool
+	inhospitable
+	ill-natured"""
+
+    entry_str = entry_to_str(entry)
+
+    assert entry_str == exp_entry_str
+
+
+class Test_build_and_write_dict:
     def test_build_and_write_to_other(self):
         args = {'src': os.path.join(TEXT_DIR, 'words.txt'),
                 'dest': os.path.join(TEXT_DIR, 'test_write.txt'),

@@ -1,6 +1,6 @@
 import argparse
 import os
-from typing import List, Dict
+from typing import List, Dict, TextIO
 
 import numpy as np
 from PyDictionary import PyDictionary
@@ -49,19 +49,28 @@ def build_entry(word, dictionary):
     return entry
 
 
-def write_entry(entry, file):
+def write_entry(entry: Dict, file: TextIO):
+    entry_str = entry_to_str(entry)
+
+    file.write(entry_str + '\n')
+    file.write(ENTRY_DELIM + '\n')
+
+
+def entry_to_str(entry: Dict):
+    entry_str_parts = []
     for key, value in entry.items():
-        file.write(f'{key.capitalize()}:\n')
+        entry_str_parts.append(f'{key.capitalize()}:\n')
 
         if isinstance(value, list):
             for v in value:
-                file.write(f'\t{v}\n')
+                entry_str_parts.append(f'\t{v}\n')
         elif value is None:
-            file.write(f'\tMissing {key}\n')
+            entry_str_parts.append(f'\tMissing {key}\n')
         else:
-            file.write(f'\t{value}\n')
+            entry_str_parts.append(f'\t{value}\n')
 
-    file.write(ENTRY_DELIM + '\n')
+    entry_str = ''.join(entry_str_parts).strip()
+    return entry_str
 
 
 def write_dict(entries, path):

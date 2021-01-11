@@ -1,9 +1,10 @@
 import os
 from enum import Enum, auto
+from typing import List
 
 import numpy as np
 from options import Option, MultipleChoice
-from words2dict import read_words, build_dict, write_dict, parse_dict
+from words2dict import read_words, build_dict, write_dict, parse_dict, entry_to_str
 
 
 class ToolID(Enum):
@@ -43,6 +44,10 @@ class VocabTool(Tool):
                    prompt='How many flashcards to go through?',
                    validator=lambda x: x.isdigit() and int(x) > 0,
                    processor=int),
+            Option(name='show_def',
+                   prompt='Show dictionary entries after answer selection?\n1.\tYes\n2.\tNo',
+                   validator=lambda x: x.isdigit() and (1 <= int(x) <= 2),
+                   processor=lambda x: True if int(x) == 1 else False)
         ]
 
         super().__init__(options)
@@ -54,7 +59,7 @@ class VocabTool(Tool):
 
         play_again = True
         while play_again:
-            flashcards = self.__show_flashcards(flashcards)
+            flashcards = self.__show_flashcards(flashcards, args['show_def'])
             if len(flashcards):
                 play_again_option = Option(name='play_again',
                                            prompt='Would you like to play again with the words you missed?\n1.\tYes\n2.\tNo',
@@ -66,7 +71,7 @@ class VocabTool(Tool):
             else:
                 play_again = False
 
-    def __show_flashcards(self, flashcards):
+    def __show_flashcards(self, flashcards: List[MultipleChoice], show_def: bool = False):
         mistakes = []
 
         print('Flashcards')
@@ -81,6 +86,12 @@ class VocabTool(Tool):
             else:
                 mistakes.append(flashcard)
                 print(f"Incorrect, the correct answer was '{flashcard.options[flashcard.answer_index]}'\n")
+
+            if show_def:
+                print('Dictionary Entry')
+                print('-----------------')
+                print(entry_to_str(flashcard.entry))
+                print()
 
         accuracy = (len(flashcards) - len(mistakes)) / len(flashcards)
         addendum = 'Good job!' if accuracy > 0.5 else 'You have some work to do!'
@@ -140,6 +151,8 @@ class VocabTool(Tool):
 
             flashcard = MultipleChoice(question=definition,
                                        options=options)
+            flashcard.entry = entry
+
             flashcards.append(flashcard)
 
         return flashcards
